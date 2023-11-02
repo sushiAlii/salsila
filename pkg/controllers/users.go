@@ -13,23 +13,21 @@ import (
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
-	var users []models.User
+
+	var (
+		users	[]models.User
+		err		error
+	)
 
 	if email != "" {
-		usersList, err := models.GetUsersByEmail(db.DB, email)
-		if err != nil {
-			http.Error(w, "Failed to fetch list of users", http.StatusInternalServerError)
-			return
-		}
-		users = usersList
+		users, err = models.GetUsersByEmail(db.DB, email)
 	} else {
-		usersList, err := models.GetAllUsers(db.DB)
-		if err != nil {
-			http.Error(w, "Failed to fetch list of users", http.StatusInternalServerError)
-			return
-		}
+		users, err = models.GetAllUsers(db.DB)
+	}
 
-		users = usersList
+	if err != nil {
+		http.Error(w, "Failed to fetch list of users", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("content-type", "application/json")
