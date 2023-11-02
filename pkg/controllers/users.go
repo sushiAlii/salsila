@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -15,8 +14,6 @@ import (
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	var users []models.User
-
-	fmt.Println("HELLO!!")
 
 	if email != "" {
 		usersList, err := models.GetUsersByEmail(db.DB, email)

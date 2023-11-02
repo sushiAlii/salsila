@@ -84,8 +84,6 @@ func GetUserByUID(DB *gorm.DB, uid string) (*User, error) {
 func GetUsersByEmail(DB *gorm.DB, email string) ([]User, error) {
 	var users []User
 
-	fmt.Println("FUCKING HELL!!")
-
 	if err := DB.Select("uid, role_id, persons_uid, email").
 				Where("email LIKE ?", "%" + email + "%").
 					Find(&users).Error; err != nil {
