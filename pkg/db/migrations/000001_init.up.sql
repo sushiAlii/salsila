@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS persons (
 CREATE TABLE IF NOT EXISTS users (
 	uid UUID DEFAULT gen_random_uuid() PRIMARY KEY,
 	role_id INTEGER REFERENCES roles(id) NOT NULL,
-	persons_id UUID REFERENCES persons(uid) UNIQUE,
+	persons_uid UUID REFERENCES persons(uid) UNIQUE,
 	email VARCHAR(100) UNIQUE,
 	password BYTEA NOT NULL
 );
