@@ -20,17 +20,11 @@ func main() {
 
 	fmt.Printf("Server is running on Port %s", port)
 
-	routes.ConfigureRoleRoutes(r)
-	routes.ConfigureSocialNetworkRoutes(r)
-	routes.ConfigureFamilyRoutes(r)
-	routes.ConfigureAuthRoutes(r)
-	routes.ConfigureUserRoutes(r)
+	routes.ConfigureAllRoutes(r)
 	
 	err := http.ListenAndServe(":" + port, r)
 
 	if err != nil {
 		log.Fatalf("Server failed to start due to error: %v", err)
 	}
-
-
 }
