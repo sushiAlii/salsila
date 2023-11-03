@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/sushiAlii/salsila/pkg/db"
@@ -14,7 +15,7 @@ func main() {
 	fmt.Println("Server Initializing...")
 	
 	db.DB = db.InitializeDB()
-	port := "6000"
+	port := os.Getenv("APP_PORT")
 
 	r := mux.NewRouter()
 

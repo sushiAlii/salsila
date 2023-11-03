@@ -2,17 +2,20 @@ package db
 
 import (
 	"fmt"
+	"os"
 
+	config "github.com/sushiAlii/salsila/pkg"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
+var err error
 
 func InitializeDB() *gorm.DB {
-	dsn := "postgresql://postgres:december181996@localhost:5432/salsila?sslmode=disable"
-
-	var err error
+	config.LoadEnv()
+	
+	dsn := os.Getenv("DB_CONNECTION")
 
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
