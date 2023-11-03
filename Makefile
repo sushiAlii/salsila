@@ -1,16 +1,18 @@
+include .env
+
 dev:
 	air
 
 createdb:
-	docker exec -it 'rte-backend-db-1' createdb --username=postgres --owner=postgres salsila
+	docker exec -it $(DOCKER_CONTAINER) createdb --username=$(DB_USER) --owner=$(DB_USER) $(DB_NAME)
 
 dropdb:
-	docker exec -it 'rte-backend-db-1' dropdb salsila --username=postgres
+	docker exec -it $(DOCKER_CONTAINER) dropdb $(DB_NAME) --username=$(DB_USER)
 
 migrate-up:
-	migrate -path pkg/db/migrations -database "postgresql://postgres:december181996@localhost:5432/salsila?sslmode=disable" -verbose up
+	migrate -path pkg/db/migrations -database "$(DB_CONNECTION)" -verbose up
 
 migrate-down:
-	migrate -path pkg/db/migrations -database "postgresql://postgres:december181996@localhost:5432/salsila?sslmode=disable" -verbose down
+	migrate -path pkg/db/migrations -database "$(DB_CONNECTION)" -verbose down
 
 .PHONY: createdb dropdb migrate-up migrate-down dev
