@@ -1,11 +1,13 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type SocialNetwork struct {
-	ID		int		`gorm:"primaryKey" json:"id"`
-	Name	string	`gorm:"not null" json:"name"`
-	BaseUrl	string	`json:"baseUrl"`
+	ID			int				`gorm:"primaryKey" json:"id"`
+	Name		string			`gorm:"not null" json:"name"`
+	BaseUrl		string			`json:"baseUrl"`
 }
 
 func CreateSocialNetwork (DB *gorm.DB, socialNetwork *SocialNetwork) error {

@@ -4,17 +4,21 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type User struct {
-	UID 		string 	`gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	RoleID		uint	`gorm:"not null" json:"roleId"`
-	PersonsUID	*string	`json:"personsUid"`
-	Email 		string	`gorm:"uniqueIndex;not null" json:"email"`
-	Password	string	`gorm:"not null" json:"password,omitempty"`
+	UID 		string 			`gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	RoleID		uint			`gorm:"not null" json:"roleId"`
+	PersonsUID	*string			`json:"personsUid"`
+	Email 		string			`gorm:"uniqueIndex;not null" json:"email"`
+	Password	string			`gorm:"not null" json:"password,omitempty"`
+	CreatedAt	time.Time		`gorm:"type:timestamptz"`
+	UpdatedAt	*time.Time		`gorm:"type:timestamptz"`
+	DeletedAt	gorm.DeletedAt	`gorm:"type:timestamptz"`
 }
 
 
@@ -93,3 +97,4 @@ func GetUsersByEmail(DB *gorm.DB, email string) ([]User, error) {
 
 	return users, nil
 }
+

@@ -1,10 +1,16 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type Family struct {
 	ID			uint	`gorm:"primaryKey" json:"id"`
 	FamilyName	string	`gorm:"not null" json:"familyName"`
+	CreatedAt	time.Time		`gorm:"type:timestamptz"`
+	UpdatedAt	*time.Time		`gorm:"type:timestamptz"`
 }
 
 func CreateFamily(DB *gorm.DB, newFamily *Family) error {

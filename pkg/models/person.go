@@ -11,4 +11,6 @@ type Person struct {
 	LastName 	string		`gorm:"not null"`
 	Gender 		string		`gorm:"not null"`
 	Birthday 	time.Time	`gorm:"not null"`
+	CreatedAt	time.Time	`gorm:"type:timestamptz"`
+	UpdatedAt	*time.Time	`gorm:"type:timestamptz"`
 }
