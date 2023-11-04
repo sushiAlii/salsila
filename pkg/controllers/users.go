@@ -59,3 +59,23 @@ func GetUserByUID(w http.ResponseWriter, r *http.Request) {
 		"data": userData,
 	})
 }
+
+func DeleteUserByUID(w http.ResponseWriter, r *http.Request) {
+	uidParam, ok := mux.Vars(r)["uid"]
+	if !ok {
+		http.Error(w, "ID not provided", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.DeleteUserByUID(db.DB, uidParam); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+
+		http.Error(w, "Failed to Delete user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
