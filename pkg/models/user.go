@@ -15,7 +15,7 @@ type User struct {
 	RoleID		uint			`gorm:"not null" json:"roleId"`
 	PersonsUID	*string			`json:"personsUid"`
 	Email 		string			`gorm:"uniqueIndex;not null" json:"email"`
-	Password	string			`gorm:"not null" json:"-"`
+	Password	string			`gorm:"not null" json:"password,omitempty"`
 	CreatedAt	time.Time		`gorm:"type:timestamptz" json:"-"`
 	UpdatedAt	*time.Time		`gorm:"type:timestamptz" json:"-"`
 	DeletedAt	gorm.DeletedAt	`gorm:"type:timestamptz" json:"-"`
