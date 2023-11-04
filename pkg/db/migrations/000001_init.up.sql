@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS users (
 	password BYTEA NOT NULL,
 	deleted_at TIMESTAMPTZ,
 	updated_at TIMESTAMPTZ,
+	created_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS user_networks (
