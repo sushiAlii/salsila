@@ -11,7 +11,7 @@ import (
 )
 
 type User struct {
-	UID 		string 			`gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	UID 		string 			`gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"uid"`
 	RoleID		uint			`gorm:"not null" json:"roleId"`
 	PersonsUID	*string			`json:"personsUid"`
 	Email 		string			`gorm:"uniqueIndex;not null" json:"email"`
