@@ -3,6 +3,7 @@ package models
 import "errors"
 
 var (
+	ErrUserNotFound			= 	errors.New("User not found")
 	ErrRoleIDRequired		= 	errors.New("Role ID is required")
 	ErrEmailRequired		= 	errors.New("Email is required")
 	ErrEmailNotUnique		= 	errors.New("Email is already in use")
