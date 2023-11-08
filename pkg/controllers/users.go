@@ -12,19 +12,13 @@ import (
 )
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	email := r.URL.Query().Get("email")
-
 	var (
 		users	[]models.User
 		err		error
 	)
 
-	if email != "" {
-		users, err = models.GetUsersByEmail(db.DB, email)
-	} else {
-		users, err = models.GetAllUsers(db.DB)
-	}
-
+	users, err = models.GetAllUsers(db.DB)
+	
 	if err != nil {
 		http.Error(w, "Failed to fetch list of users", http.StatusInternalServerError)
 		return

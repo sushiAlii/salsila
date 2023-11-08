@@ -85,17 +85,14 @@ func GetUserByUID(DB *gorm.DB, uid string) (*User, error) {
 	return &user, nil
 }
 
-func GetUsersByEmail(DB *gorm.DB, email string) ([]User, error) {
-	var users []User
+func GetUserByEmail(DB *gorm.DB, email string) (*User, error) {
+	var user User
 
-	if err := DB.Select("uid, role_id, persons_uid, email").
-				Where("email LIKE ?", "%" + email + "%").
-					Find(&users).Error; err != nil {
-			
+	if err := DB.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 
-	return users, nil
+	return &user, nil
 }
 
 func DeleteUserByUID(DB *gorm.DB, uid string) error {
