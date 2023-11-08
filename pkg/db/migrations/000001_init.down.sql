@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS persons_family;
 DROP TABLE IF EXISTS user_networks;
+DROP TABLE IF EXISTS refresh_tokens;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS persons;
 DROP TABLE IF EXISTS families;
