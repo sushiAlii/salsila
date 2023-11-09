@@ -44,6 +44,26 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func LogoutUser(w http.ResponseWriter, r *http.Request) {
+	refreshToken := r.Header.Get("Refresh-Token")
+	if(refreshToken == "") {
+		http.Error(w, "Refresh token is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.LogoutUser(db.DB, refreshToken); err != nil {
+		http.Error(w, "Could not logout", http.StatusInternalServerError)
+		return
+	}
+	
+	w.Header().Del("Refresh-Token")
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Logout successfully",
+	})
+}
+
 func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var newUser models.User
 
