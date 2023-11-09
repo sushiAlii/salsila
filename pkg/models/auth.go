@@ -47,6 +47,22 @@ func LoginUser(DB *gorm.DB, email, password string) (*User, error) {
 	return user, nil
 }
 
+func LogoutUser(DB *gorm.DB, refreshToken string) error {
+	userUid, err := GetUserUIDFromToken(refreshToken)
+	if err != nil {
+		return err
+	}
+
+	tx := DB.Begin()
+
+	if err := tx.Where("user_uid = ? AND token = ?", userUid, refreshToken).Delete(&RefreshToken{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
 func RegisterUser(DB *gorm.DB, user *User) error {
 	return CreateUser(DB, user)
 }
@@ -160,4 +176,30 @@ func VerifyToken(DB *gorm.DB, userUid string, tokenString string) (*RefreshToken
 	}
 
 	return &token, nil
+}
+
+func GetUserUIDFromToken(refreshToken string) (string, error) {
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return []byte(refreshSecret), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		
+		userUid, ok := claims["user_uid"].(string)
+		if !ok {
+			return "", fmt.Errorf("user_uid not found in token")
+		}
+
+		return userUid, nil
+	} else {
+		return "", fmt.Errorf("Invalid token")
+	}
 }
