@@ -155,7 +155,7 @@ func VerifyToken(DB *gorm.DB, userUid string, tokenString string) (*RefreshToken
 		return nil, fmt.Errorf("Token has expired")
 	}
 
-	if err := DB.Where("user_uid ? AND token = ?", userUid, tokenString).Delete(&RefreshToken{}).Error; err != nil {
+	if err := DB.Where("user_uid = ? AND token = ?", userUid, tokenString).Delete(&RefreshToken{}).Error; err != nil {
 		return nil, fmt.Errorf("Unable to refresh token: %v", err)
 	}
 
