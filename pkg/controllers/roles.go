@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -21,8 +20,6 @@ func CreateRole(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	fmt.Printf("New Role body: %v", newRole)
 
 	if newRole.Name == "" {
 		http.Error(w, "Role name is a required field", http.StatusUnprocessableEntity)
