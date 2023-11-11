@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS user_networks (
 	id SERIAL PRIMARY KEY,
 	user_uid UUID REFERENCES users(uid) NOT NULL,
 	social_networks_id INTEGER REFERENCES social_networks(id) NOT NULL,
+	user_name VARCHAR(100),
+	user_url VARCHAR(200),
 	created_at TIMESTAMPTZ,
 	updated_at TIMESTAMPTZ
 );
