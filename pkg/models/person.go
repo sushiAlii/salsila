@@ -7,14 +7,56 @@ import (
 )
 
 type Person struct {
-	UID			string 		`gorm:"type:uuid;default:uuid_generate_v4()"`
-	FirstName	string		`gorm:"not null"`
-	MiddleName	string		`gorm:"not null"`
-	LastName 	string		`gorm:"not null"`
-	Gender 		string		`gorm:"not null"`
-	Birthday 	time.Time	`gorm:"not null"`
-	CreatedAt	time.Time	`gorm:"type:timestamptz"`
-	UpdatedAt	*time.Time	`gorm:"type:timestamptz"`
+	UID			string 		`gorm:"type:uuid;default:uuid_generate_v4()" json:"uid"`
+	FirstName	string		`gorm:"not null" json:"firstName"`
+	MiddleName	string		`gorm:"not null" json:"middleName"`
+	LastName 	string		`gorm:"not null" json:"lastName"`
+	Gender 		string		`gorm:"not null" json:"gender"`
+	Birthday 	string		`gorm:"type:date;not null" json:"birthday"`
+	CreatedAt	time.Time	`gorm:"type:timestamptz" json:"-"`
+}
+
+var GenderEnum = [2]string{"Male", "Female"}
+
+func (Person) TableName() string {
+	return "persons"
+}
+
+func ValidatePerson(DB *gorm.DB, person *Person) error {
+	if person.FirstName == "" {
+		return ErrFirstNameRequired
+	}
+
+	if person.LastName == "" {
+		return ErrLastNameRequired
+	}
+
+	if person.MiddleName == "" {
+		return ErrMiddleNameRequired
+	}
+
+	if person.Gender == "" {
+		return ErrGenderRequired
+	}
+
+	_, err := time.Parse("2006-01-02", person.Birthday)
+	if err != nil {
+		return ErrBirthdayInvalid
+	}
+
+	isValidGender := false
+	for _, validGender := range GenderEnum {
+		if person.Gender == validGender{
+			isValidGender = true
+			break
+		}
+	}
+
+	if !isValidGender {
+		return ErrGenderInvalid
+	}
+
+	return nil
 }
 
 func CreatePerson(DB *gorm.DB, person *Person) error {
