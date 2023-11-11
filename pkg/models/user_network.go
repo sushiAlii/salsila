@@ -17,6 +17,26 @@ type UserNetwork struct {
 	UpdatedAt		*time.Time	`gorm:"type:timestamptz" json:"-"`
 }
 
+func ValidateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
+	if userNetwork.UserUID == "" {
+		return ErrUserUIDRequired
+	}
+
+	if userNetwork.SocialNetworkID == 0 {
+		return ErrSocialNetworkIDRequired
+	}
+
+	if userNetwork.UserURL == "" {
+		return ErrUserURLRequired
+	}
+
+	if len(userNetwork.UserURL) < 5 {
+		return ErrUserURLMinChar
+	}
+
+	return nil
+}
+
 
 func CreateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
 	return DB.Create(userNetwork).Error
