@@ -32,7 +32,7 @@ func GetRoleByID(DB *gorm.DB, id uint) (*Role, error) {
 }
 
 func UpdateRoleByID(DB *gorm.DB, id uint, updatedRole Role) error {
-	return DB.Model(&Role{}).Where("ID = ?", id).Updates(updatedRole).Error
+	return DB.Model(&Role{}).Where("id = ?", id).Updates(updatedRole).Error
 }
 
 func DeleteRoleByID(DB *gorm.DB, id uint) error {
