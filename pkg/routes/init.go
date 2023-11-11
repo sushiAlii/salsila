@@ -8,4 +8,5 @@ func ConfigureAllRoutes(r *mux.Router) {
 	ConfigureFamilyRoutes(r)
 	ConfigureAuthRoutes(r)
 	ConfigureUserRoutes(r)
+	ConfigurePersonRoutes(r)
 }
