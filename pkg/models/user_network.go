@@ -8,24 +8,36 @@ import (
 
 
 type UserNetwork struct {
-	ID				uint		`gorm:"primaryKey" json:"id"`
-	UserUID			string		`gorm:"not null" json:"userUid"`
-	SocialNetworkID	uint		`gorm:"not null" json:"socialNetworkId"`
-	UserName		string		`json:"userName"`
-	UserURL			string		`gorm:"not null" json:"userUrl"`
-	CreatedAt		time.Time	`gorm:"type:timestamptz" json:"-"`
-	UpdatedAt		*time.Time	`gorm:"type:timestamptz" json:"-"`
+	ID					uint		`gorm:"primaryKey" json:"id"`
+	UserUID				string		`gorm:"not null" json:"userUid"`
+	SocialNetworksID	uint		`gorm:"not null" json:"socialNetworkId"`
+	UserName			string		`json:"userName"`
+	UserURL				string		`gorm:"not null" json:"userUrl"`
+	CreatedAt			time.Time	`gorm:"type:timestamptz" json:"-"`
+	UpdatedAt			*time.Time	`gorm:"type:timestamptz" json:"-"`
 }
 
-func ValidateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
+func ValidateCreateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
 	if userNetwork.UserUID == "" {
 		return ErrUserUIDRequired
 	}
 
-	if userNetwork.SocialNetworkID == 0 {
+	if userNetwork.SocialNetworksID == 0 {
 		return ErrSocialNetworkIDRequired
 	}
 
+	if userNetwork.UserURL == "" {
+		return ErrUserURLRequired
+	}
+
+	if len(userNetwork.UserURL) < 5 {
+		return ErrUserURLMinChar
+	}
+
+	return nil
+}
+
+func ValidateUpdateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
 	if userNetwork.UserURL == "" {
 		return ErrUserURLRequired
 	}
