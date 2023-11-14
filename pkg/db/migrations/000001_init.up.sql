@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS user_networks (
 CREATE TABLE IF NOT EXISTS persons_family (
 	id SERIAL PRIMARY KEY,
 	family_id INTEGER REFERENCES families(id) NOT NULL,
-	person_id UUID REFERENCES persons(uid) NOT NULL,
+	person_uid UUID REFERENCES persons(uid) NOT NULL,
 	family_role family_role_enum NOT NULL,
 	created_at TIMESTAMPTZ,
 	updated_at TIMESTAMPTZ
