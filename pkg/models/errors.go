@@ -22,4 +22,8 @@ var (
 	ErrSocialNetworkIDRequired 	= 	errors.New("Social Network ID is required")
 	ErrUserURLRequired			=	errors.New("User URL is required")
 	ErrUserURLMinChar			=	errors.New("User URL should have more than 5 characters")
+
+	ErrFamilyIDRequired			=	errors.New("Family ID is required")
+	ErrPersonUIDRequired		=	errors.New("Person UID is required")
+	ErrFamilyRoleRequired		=	errors.New("Family role is required")
 )
