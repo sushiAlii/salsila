@@ -15,5 +15,7 @@ func ConfigureUserRoutes(r *mux.Router) {
 	router.HandleFunc("", controllers.GetAllUsers).Methods("GET")
 	router.HandleFunc(fmt.Sprintf("/{uid:%s}", UUIDRegex), controllers.GetUserByUID).Methods("GET")
 
-	router.HandleFunc(fmt.Sprintf("/{uid:%s}", UUIDRegex), controllers.DeleteUserByUID)
+	router.HandleFunc(fmt.Sprintf("/{uid:%s}", UUIDRegex), controllers.AttachPerson).Methods("PATCH")
+
+	router.HandleFunc(fmt.Sprintf("/{uid:%s}", UUIDRegex), controllers.DeleteUserByUID).Methods("DELETE")
 }
