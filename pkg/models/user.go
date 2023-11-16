@@ -95,6 +95,18 @@ func GetUserByEmail(DB *gorm.DB, email string) (*User, error) {
 	return &user, nil
 }
 
+func AttachPerson(DB *gorm.DB, personUid string, userUid string) error {
+	tx := DB.Begin()
+
+	if err := tx.Model(&User{}).Where("uid = ?", userUid).Update("persons_uid", personUid).Error; err != nil {
+		tx.Rollback()
+
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
 func DeleteUserByUID(DB *gorm.DB, uid string) error {
 	return DB.Delete(&User{}, "uid = ?", uid).Error
 }

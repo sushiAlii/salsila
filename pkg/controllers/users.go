@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -51,6 +52,40 @@ func GetUserByUID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(map[string]*models.User{
 		"data": userData,
+	})
+}
+
+func AttachPerson(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("HELLO??")
+
+	var body struct {
+		PersonUid	string
+	}
+
+	userUid, ok := mux.Vars(r)["uid"]
+	if !ok {
+		http.Error(w, "User's UID not provided", http.StatusBadRequest)
+		return
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.AttachPerson(db.DB, body.PersonUid, userUid); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		http.Error(w, "Failed to attach person", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Successfuly attached a person to the user",
 	})
 }
 
