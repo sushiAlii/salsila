@@ -8,33 +8,50 @@ type Role struct {
 	Description	string	`json:"description"`
 }
 
-func CreateRole(DB *gorm.DB, role *Role) error {
-	return DB.Create(role).Error
+type RoleService interface {
+	CreateRole(*Role) error
+	GetAllRoles() ([]Role, error)
+	GetRoleByID(uint) (*Role, error)
+	UpdateRoleByID(uint, Role) error
+	DeleteRoleByID(uint) error
 }
 
-func GetAllRoles(DB *gorm.DB) ([]Role, error) {
+type roleService struct {
+	DB *gorm.DB
+}
+
+func NewRoleService(db *gorm.DB) RoleService {
+	return &roleService{DB: db}
+}
+
+func (rs *roleService) CreateRole(role *Role) error {
+	return rs.DB.Create(role).Error	
+}
+
+func (rs *roleService) GetAllRoles() ([]Role, error) {
 	var rolesList []Role
 
-	if err := DB.Find(&rolesList).Error; err != nil {
+	if err := rs.DB.Find(&rolesList).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return rolesList, nil
 }
 
-func GetRoleByID(DB *gorm.DB, id uint) (*Role, error) {
+func (rs *roleService) GetRoleByID(id uint) (*Role, error) {
 	var roleData Role
 
-	if err := DB.First(&roleData, id).Error; err != nil {
+	if err := rs.DB.First(&roleData, id).Error; err != nil {
 		return nil, err
 	}
+
 	return &roleData, nil
 }
 
-func UpdateRoleByID(DB *gorm.DB, id uint, updatedRole Role) error {
-	return DB.Model(&Role{}).Where("id = ?", id).Updates(updatedRole).Error
+func (rs *roleService) UpdateRoleByID(id uint, updatedRole Role) error {
+	return rs.DB.Model(&Role{}).Where("id = ?", id).Updates(updatedRole).Error
 }
 
-func DeleteRoleByID(DB *gorm.DB, id uint) error {
-	return DB.Delete(&Role{}, id).Error
+func (rs *roleService) DeleteRoleByID(id uint) error {
+	return rs.DB.Delete(&Role{}, id).Error
 }
