@@ -7,12 +7,19 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/sushiAlii/salsila/pkg/db"
 	"github.com/sushiAlii/salsila/pkg/models"
 	"gorm.io/gorm"
 )
 
-func CreateRole(w http.ResponseWriter, r *http.Request) {
+type RoleController struct {
+	service models.RoleService
+}
+
+func NewRoleController(service models.RoleService) *RoleController {
+	return &RoleController{service: service}
+}
+
+func (rc *RoleController) CreateRole(w http.ResponseWriter, r *http.Request) {
 	var newRole models.Role
 
 	err := json.NewDecoder(r.Body).Decode(&newRole)
@@ -32,7 +39,9 @@ func CreateRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreateRole(db.DB, &newRole); err != nil {
+	
+
+	if err := rc.service.CreateRole(&newRole); err != nil {
 		http.Error(w, "Failed to create a new role", http.StatusInternalServerError)
 		return
 	}
@@ -43,8 +52,8 @@ func CreateRole(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetAllRoles(w http.ResponseWriter, r *http.Request) {
-	roles, err := models.GetAllRoles(db.DB)
+func (rc *RoleController) GetAllRoles(w http.ResponseWriter, r *http.Request) {
+	roles, err := rc.service.GetAllRoles()
 
 	if err != nil {
 		http.Error(w, "Failed to retrieve roles", http.StatusInternalServerError)
@@ -57,7 +66,7 @@ func GetAllRoles(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetRoleByID(w http.ResponseWriter, r *http.Request) {
+func (rc *RoleController) GetRoleByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -71,7 +80,7 @@ func GetRoleByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uint(parsedId)
-	roleData, err := models.GetRoleByID(db.DB, id)
+	roleData, err := rc.service.GetRoleByID(id)
 	if err != nil {
 		http.Error(w, "Role data not found", http.StatusNotFound)
 		return
@@ -83,7 +92,7 @@ func GetRoleByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func UpdateRoleByID(w http.ResponseWriter, r *http.Request) {
+func (rc *RoleController) UpdateRoleByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -104,7 +113,7 @@ func UpdateRoleByID(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	id := uint(parsedId)
-	if err := models.UpdateRoleByID(db.DB, id, updatedRole); err != nil {
+	if err := rc.service.UpdateRoleByID(id, updatedRole); err != nil {
 		http.Error(w, "Failed to update role", http.StatusInternalServerError)
 		return
 	}
@@ -115,7 +124,7 @@ func UpdateRoleByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func DeleteRoleByID(w http.ResponseWriter, r *http.Request) {
+func (rc *RoleController) DeleteRoleByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -129,7 +138,7 @@ func DeleteRoleByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uint(parsedId)
-	if err := models.DeleteRoleByID(db.DB, id); err != nil {
+	if err := rc.service.DeleteRoleByID(id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "Role record not found", http.StatusNotFound)
 			return

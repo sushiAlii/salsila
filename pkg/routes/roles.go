@@ -5,7 +5,7 @@ import (
 	"github.com/sushiAlii/salsila/pkg/controllers"
 )
 
-func ConfigureRoleRoutes(r *mux.Router) {
+func ConfigureRoleRoutes(r *mux.Router, controllers *controllers.RoleController) {
 	roleRouter := r.PathPrefix("/roles").Subrouter()
 
 	roleRouter.HandleFunc("", controllers.GetAllRoles).Methods("GET")

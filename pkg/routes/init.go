@@ -1,9 +1,12 @@
 package routes
 
-import "github.com/gorilla/mux"
+import (
+	"github.com/gorilla/mux"
+	"github.com/sushiAlii/salsila/pkg/controllers"
+)
 
-func ConfigureAllRoutes(r *mux.Router) {
-	ConfigureRoleRoutes(r)
+func ConfigureAllRoutes(r *mux.Router, roleController *controllers.RoleController) {
+	ConfigureRoleRoutes(r, roleController)
 	ConfigureSocialNetworkRoutes(r)
 	ConfigureFamilyRoutes(r)
 	ConfigureAuthRoutes(r)
