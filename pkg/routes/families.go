@@ -5,7 +5,7 @@ import (
 	"github.com/sushiAlii/salsila/pkg/controllers"
 )
 
-func ConfigureFamilyRoutes(r *mux.Router) {
+func ConfigureFamilyRoutes(r *mux.Router, controllers *controllers.FamilyController) {
 	router := r.PathPrefix("/families").Subrouter()
 
 	router.HandleFunc("", controllers.CreateFamily).Methods("POST")

@@ -13,33 +13,49 @@ type Family struct {
 	UpdatedAt	*time.Time	`gorm:"type:timestamptz"`
 }
 
-func CreateFamily(DB *gorm.DB, newFamily *Family) error {
-	return DB.Create(newFamily).Error
+type FamilyService interface {
+	CreateFamily(*Family) error
+	GetAllFamilies() ([]Family, error)
+	GetFamilyByID(uint) (*Family, error)
+	UpdateFamilyByID(uint, Family) error
+	DeleteFamilyByID(uint) error
 }
 
-func GetAllFamilies(DB *gorm.DB) ([]Family, error) {
+type familyService struct {
+	DB *gorm.DB
+}
+
+func NewFamilyController(db *gorm.DB) FamilyService {
+	return &familyService{DB: db}
+}
+
+func (fs *familyService) CreateFamily(newFamily *Family) error {
+	return fs.DB.Create(newFamily).Error
+}
+
+func (fs *familyService) GetAllFamilies() ([]Family, error) {
 	var familyList []Family
 
-	if err := DB.Find(&familyList).Error; err != nil {
+	if err := fs.DB.Find(&familyList).Error; err != nil {
 		return nil, err
 	}
 
 	return familyList, nil
 }
 
-func GetFamilyByID(DB *gorm.DB, id uint) (*Family, error) {
+func (fs *familyService) GetFamilyByID(id uint) (*Family, error) {
 	var family Family
 
-	if err := DB.First(&family, id).Error; err != nil {
+	if err := fs.DB.First(&family, id).Error; err != nil {
 		return nil, err
 	}
 	return &family, nil
 }
 
-func UpdateFamilyByID(DB *gorm.DB, id uint, updatedFamily Family) error {
-	return DB.Model(&Family{}).Where("id = ?", id).Updates(updatedFamily).Error
+func (fs *familyService) UpdateFamilyByID(id uint, updatedFamily Family) error {
+	return fs.DB.Model(&Family{}).Where("id = ?", id).Updates(updatedFamily).Error
 }
 
-func DeleteFamilyByID(DB *gorm.DB, id uint) error {
-	return DB.Delete(&Family{}, id).Error
+func (fs *familyService) DeleteFamilyByID(id uint) error {
+	return fs.DB.Delete(&Family{}, id).Error
 }

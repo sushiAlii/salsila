@@ -25,12 +25,15 @@ func main() {
 	socialNetworkService := models.NewSocialNetworkService(dbInstance)
 	socialNetworkController := controllers.NewSocialNetworkController(socialNetworkService)
 
+	familyService := models.NewFamilyController(dbInstance)
+	familyController := controllers.NewFamilyController(familyService)
+
 
 	r := mux.NewRouter()
 
 	fmt.Printf("Server is running on Port %s", port)
 
-	routes.ConfigureAllRoutes(r, roleController, socialNetworkController)
+	routes.ConfigureAllRoutes(r, roleController, socialNetworkController, familyController)
 	
 	err := http.ListenAndServe(":" + port, r)
 

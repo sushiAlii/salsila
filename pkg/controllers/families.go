@@ -8,12 +8,19 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/sushiAlii/salsila/pkg/db"
 	"github.com/sushiAlii/salsila/pkg/models"
 	"gorm.io/gorm"
 )
 
-func CreateFamily(w http.ResponseWriter, r *http.Request) {
+type FamilyController struct {
+	service models.FamilyService
+}
+
+func NewFamilyController(service models.FamilyService) *FamilyController {
+	return &FamilyController{service: service}
+}
+
+func (fc *FamilyController) CreateFamily(w http.ResponseWriter, r *http.Request) {
 	var newFamily models.Family
 
 	fmt.Printf("Response Body %v \n", r.Body)
@@ -35,7 +42,7 @@ func CreateFamily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreateFamily(db.DB, &newFamily); err != nil {
+	if err := fc.service.CreateFamily(&newFamily); err != nil {
 		http.Error(w, "Failed to create a new family record", http.StatusInternalServerError)
 		return
 	}
@@ -46,8 +53,8 @@ func CreateFamily(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetAllFamilies(w http.ResponseWriter, r *http.Request) {
-	familiesList, err := models.GetAllFamilies(db.DB)
+func (fc *FamilyController) GetAllFamilies(w http.ResponseWriter, r *http.Request) {
+	familiesList, err := fc.service.GetAllFamilies()
 
 	if err != nil {
 		http.Error(w, "Failed to fetch families", http.StatusInternalServerError)
@@ -59,7 +66,7 @@ func GetAllFamilies(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetFamilyByID(w http.ResponseWriter, r *http.Request) {
+func (fc *FamilyController) GetFamilyByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -73,7 +80,7 @@ func GetFamilyByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uint(parsedId)
-	familyData, err := models.GetFamilyByID(db.DB, id)
+	familyData, err := fc.service.GetFamilyByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("Family record with ID %d is not found", id), http.StatusNotFound)
@@ -90,7 +97,7 @@ func GetFamilyByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func UpdateFamilyByID(w http.ResponseWriter, r *http.Request) {
+func (fc *FamilyController) UpdateFamilyByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -112,7 +119,7 @@ func UpdateFamilyByID(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	id := uint(parsedId)
-	if err := models.UpdateFamilyByID(db.DB, id, updatedFamily); err != nil {
+	if err := fc.service.UpdateFamilyByID(id, updatedFamily); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("Family with ID %d does not exist", id), http.StatusNotFound)
 			return
@@ -128,7 +135,7 @@ func UpdateFamilyByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func DeleteFamilyByID(w http.ResponseWriter, r *http.Request) {
+func (fc *FamilyController) DeleteFamilyByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -142,7 +149,7 @@ func DeleteFamilyByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uint(parsedId)
-	if err := models.DeleteFamilyByID(db.DB, id); err != nil {
+	if err := fc.service.DeleteFamilyByID(id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("Family ID %d does not exist", id), http.StatusNotFound)
 			return
