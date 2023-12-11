@@ -8,12 +8,19 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/sushiAlii/salsila/pkg/db"
 	"github.com/sushiAlii/salsila/pkg/models"
 	"gorm.io/gorm"
 )
 
-func CreateSocialNetwork(w http.ResponseWriter, r *http.Request) {
+type SocialNetworkController struct {
+	service models.SocialNetworkService
+}
+
+func NewSocialNetworkController(service models.SocialNetworkService) *SocialNetworkController {
+	return &SocialNetworkController{service: service}
+}
+
+func (snc *SocialNetworkController) CreateSocialNetwork(w http.ResponseWriter, r *http.Request) {
 	var newSocialNetwork models.SocialNetwork
 
 	err := json.NewDecoder(r.Body).Decode(&newSocialNetwork)
@@ -32,7 +39,7 @@ func CreateSocialNetwork(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.CreateSocialNetwork(db.DB, &newSocialNetwork); err != nil {
+	if err := snc.service.CreateSocialNetwork(&newSocialNetwork); err != nil {
 		http.Error(w, "Server Error: Failed to create a new social network", http.StatusInternalServerError)
 		return
 	}
@@ -44,8 +51,8 @@ func CreateSocialNetwork(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetAllSocialNetworks(w http.ResponseWriter, r *http.Request) {
-	socialNetworks, err := models.GetAllSocialNetworks(db.DB)
+func (snc *SocialNetworkController) GetAllSocialNetworks(w http.ResponseWriter, r *http.Request) {
+	socialNetworks, err := snc.service.GetAllSocialNetworks()
 
 	if err != nil {
 		http.Error(w, "Failed to fetch social networks", http.StatusInternalServerError)
@@ -58,7 +65,7 @@ func GetAllSocialNetworks(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
+func (snc *SocialNetworkController) GetSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -72,7 +79,7 @@ func GetSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uint(parsedId)
-	socialNetwork, err := models.GetSocialNetworkByID(db.DB, id)
+	socialNetwork, err := snc.service.GetSocialNetworkByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, fmt.Sprintf("Social network with ID %d does not exist", id), http.StatusNotFound)
@@ -89,7 +96,7 @@ func GetSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
 	}) 	
 }
 
-func UpdateSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
+func (snc *SocialNetworkController) UpdateSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -110,7 +117,7 @@ func UpdateSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	id := uint(parsedId)
-	if err := models.UpdateSocialNetworkByID(db.DB, id, socialNetworkBody); err != nil {
+	if err := snc.service.UpdateSocialNetworkByID(id, socialNetworkBody); err != nil {
 		http.Error(w, "Failed to update a social network record", http.StatusInternalServerError)
 		return
 	}
@@ -121,7 +128,7 @@ func UpdateSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func DeleteSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
+func (snc *SocialNetworkController) DeleteSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
 	idParam, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
@@ -135,7 +142,7 @@ func DeleteSocialNetworkByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := uint(parsedId)
-	if err := models.DeleteSocialNetworkByID(db.DB, id); err != nil {
+	if err := snc.service.DeleteSocialNetworkByID(id); err != nil {
 		http.Error(w, "Failed to delete a social network record", http.StatusInternalServerError)
 		return
 	}

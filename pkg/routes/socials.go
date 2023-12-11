@@ -5,7 +5,7 @@ import (
 	"github.com/sushiAlii/salsila/pkg/controllers"
 )
 
-func ConfigureSocialNetworkRoutes(r *mux.Router) {
+func ConfigureSocialNetworkRoutes(r *mux.Router, controllers *controllers.SocialNetworkController) {
 	router := r.PathPrefix("/social_networks").Subrouter()
 
 	//	Create

@@ -22,12 +22,15 @@ func main() {
 	roleService := models.NewRoleService(dbInstance)
 	roleController := controllers.NewRoleController(roleService)
 
+	socialNetworkService := models.NewSocialNetworkService(dbInstance)
+	socialNetworkController := controllers.NewSocialNetworkController(socialNetworkService)
+
 
 	r := mux.NewRouter()
 
 	fmt.Printf("Server is running on Port %s", port)
 
-	routes.ConfigureAllRoutes(r, roleController)
+	routes.ConfigureAllRoutes(r, roleController, socialNetworkController)
 	
 	err := http.ListenAndServe(":" + port, r)
 

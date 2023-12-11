@@ -5,7 +5,7 @@ import (
 	"github.com/sushiAlii/salsila/pkg/controllers"
 )
 
-func ConfigureAllRoutes(r *mux.Router, roleController *controllers.RoleController) {
+func ConfigureAllRoutes(r *mux.Router, roleController *controllers.RoleController, socialNetworkController *controllers.SocialNetworkController) {
 	ConfigureRoleRoutes(r, roleController)
 	ConfigureSocialNetworkRoutes(r)
 	ConfigureFamilyRoutes(r)
