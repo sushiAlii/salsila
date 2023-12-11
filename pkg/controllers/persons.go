@@ -7,12 +7,19 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sushiAlii/salsila/pkg/db"
 	"github.com/sushiAlii/salsila/pkg/models"
 	"gorm.io/gorm"
 )
 
-func CreatePerson(w http.ResponseWriter, r *http.Request) {
+type PersonController struct {
+	service models.PersonService
+}
+
+func NewPersonController(service models.PersonService) *PersonController {
+	return &PersonController{service: service}
+}
+
+func (pc *PersonController) CreatePerson(w http.ResponseWriter, r *http.Request) {
 	var person models.Person
 
 	if err := json.NewDecoder(r.Body).Decode(&person); err != nil {
@@ -22,12 +29,12 @@ func CreatePerson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.ValidatePerson(db.DB, &person); err != nil {
+	if err := models.ValidatePerson(&person); err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
-	if err := models.CreatePerson(db.DB, &person); err != nil {
+	if err := pc.service.CreatePerson(&person); err != nil {
 		http.Error(w, "Failed to create a new person", http.StatusInternalServerError)
 		return
 	}
@@ -38,8 +45,8 @@ func CreatePerson(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetAllPersons(w http.ResponseWriter, r *http.Request) {
-	personsList, err := models.GetAllPersons(db.DB)
+func (pc *PersonController) GetAllPersons(w http.ResponseWriter, r *http.Request) {
+	personsList, err := pc.service.GetAllPersons()
 	if err != nil {
 		http.Error(w, "Failed to fetch persons list", http.StatusInternalServerError)
 		return
@@ -51,14 +58,14 @@ func GetAllPersons(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetPersonByUID(w http.ResponseWriter, r *http.Request) {
+func (pc *PersonController) GetPersonByUID(w http.ResponseWriter, r *http.Request) {
 	uid, ok := mux.Vars(r)["uid"]
 	if !ok {
 		http.Error(w, "UID not provided", http.StatusBadRequest)
 		return
 	}
 
-	person, err := models.GetPersonByUID(db.DB, uid)
+	person, err := pc.service.GetPersonByUID(uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -75,7 +82,7 @@ func GetPersonByUID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func UpdatePersonByUID(w http.ResponseWriter, r *http.Request) {
+func (pc *PersonController) UpdatePersonByUID(w http.ResponseWriter, r *http.Request) {
 	uid, ok := mux.Vars(r)["uid"]
 	if !ok {
 		http.Error(w, "UID not provided", http.StatusBadRequest)
@@ -87,12 +94,12 @@ func UpdatePersonByUID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 	}
 
-	if err := models.ValidatePerson(db.DB, &updatedPerson); err != nil {
+	if err := models.ValidatePerson(&updatedPerson); err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
-	if err := models.UpdatePersonByUID(db.DB, updatedPerson, uid); err != nil {
+	if err := pc.service.UpdatePersonByUID(updatedPerson, uid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -108,14 +115,14 @@ func UpdatePersonByUID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func DeletePersonByUID(w http.ResponseWriter, r *http.Request) {
+func (pc *PersonController) DeletePersonByUID(w http.ResponseWriter, r *http.Request) {
 	uid, ok := mux.Vars(r)["uid"]
 	if !ok {
 		http.Error(w, "UID not provided", http.StatusBadRequest)
 		return
 	}
 
-	if err := models.DeletePersonByUID(db.DB, uid); err != nil {
+	if err := pc.service.DeletePersonByUID(uid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return

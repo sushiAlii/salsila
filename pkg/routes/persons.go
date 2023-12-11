@@ -7,7 +7,7 @@ import (
 	"github.com/sushiAlii/salsila/pkg/controllers"
 )
 
-func ConfigurePersonRoutes(r *mux.Router) {
+func ConfigurePersonRoutes(r *mux.Router, controllers *controllers.PersonController) {
 	router := r.PathPrefix("/persons").Subrouter()
 
 	//	Create

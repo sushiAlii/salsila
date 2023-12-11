@@ -22,7 +22,23 @@ func (Person) TableName() string {
 	return "persons"
 }
 
-func ValidatePerson(DB *gorm.DB, person *Person) error {
+type PersonService interface {
+	CreatePerson(*Person) error
+	GetAllPersons() ([]Person, error)
+	GetPersonByUID(string) (*Person, error)
+	UpdatePersonByUID(Person, string) error
+	DeletePersonByUID(string) error
+}
+
+type personService struct {
+	DB *gorm.DB
+}
+
+func NewPersonService(db *gorm.DB) PersonService {
+	return &personService{DB: db}
+}
+
+func ValidatePerson(person *Person) error {
 	if person.FirstName == "" {
 		return ErrFirstNameRequired
 	}
@@ -59,32 +75,32 @@ func ValidatePerson(DB *gorm.DB, person *Person) error {
 	return nil
 }
 
-func CreatePerson(DB *gorm.DB, person *Person) error {
-	return DB.Create(person).Error
+func (ps *personService) CreatePerson(person *Person) error {
+	return ps.DB.Create(person).Error
 }
 
-func GetAllPersons(DB *gorm.DB) ([]Person, error) {
+func (ps *personService) GetAllPersons() ([]Person, error) {
 	var personsList []Person
 
-	if err := DB.Find(&personsList).Error; err != nil {
+	if err := ps.DB.Find(&personsList).Error; err != nil {
 		return nil, err
 	}
 
 	return personsList, nil
 }
 
-func GetPersonByUID(DB *gorm.DB, uid string) (*Person, error) {
+func (ps *personService) GetPersonByUID(uid string) (*Person, error) {
 	var person Person
 
-	if err := DB.First(&person, "uid = ?", uid).Error; err != nil {
+	if err := ps.DB.First(&person, "uid = ?", uid).Error; err != nil {
 		return nil, err
 	}
 
 	return &person, nil
 }
 
-func UpdatePersonByUID(DB *gorm.DB, person Person, uid string) error {
-	tx := DB.Begin()
+func (ps *personService) UpdatePersonByUID(person Person, uid string) error {
+	tx := ps.DB.Begin()
 
 	if err := tx.Model(&Person{}).Where("uid = ?", uid).Updates(&person).Error; err != nil {
 		tx.Rollback()
@@ -95,8 +111,8 @@ func UpdatePersonByUID(DB *gorm.DB, person Person, uid string) error {
 	return tx.Commit().Error
 }
 
-func DeletePersonByUID(DB *gorm.DB, uid string) error {
-	tx := DB.Begin()
+func (ps *personService) DeletePersonByUID(uid string) error {
+	tx := ps.DB.Begin()
 
 	if err := tx.Delete(&Person{}, "uid = ?", uid).Error; err != nil {
 		tx.Rollback()
