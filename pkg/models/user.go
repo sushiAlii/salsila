@@ -21,8 +21,25 @@ type User struct {
 	DeletedAt	gorm.DeletedAt	`gorm:"type:timestamptz" json:"-"`
 }
 
+type UserService interface {
+	ValidateUser(*User) error
+	CreateUser(*User) error
+	GetAllUsers() ([]User, error)
+	GetUserByUID(string) (*User, error)
+	GetUserByEmail(string) (*User, error)
+	AttachPerson(string, string) error
+	DeleteUserByUID(string) error
+}
 
-func ValidateUser(DB *gorm.DB, user *User) error {
+type userService struct {
+	DB *gorm.DB
+}
+
+func NewUserService(db *gorm.DB) UserService {
+	return &userService{DB: db}
+}
+
+func (us *userService) ValidateUser(user *User) error {
 	if user.RoleID == 0 {
 		return ErrRoleIDRequired
 	}
@@ -35,7 +52,7 @@ func ValidateUser(DB *gorm.DB, user *User) error {
 
 	fmt.Printf("Finding email with %s", user.Email)
 
-	if err := DB.Where("email = ?", user.Email).First(&existingUser).Error; err != nil {
+	if err := us.DB.Where("email = ?", user.Email).First(&existingUser).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrEmailNotUnique
 		}
@@ -54,7 +71,7 @@ func ValidateUser(DB *gorm.DB, user *User) error {
 	return nil
 }
 
-func CreateUser(DB *gorm.DB, newUser *User) error {
+func (us *userService) CreateUser(newUser *User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -62,41 +79,41 @@ func CreateUser(DB *gorm.DB, newUser *User) error {
 
 	newUser.Password = string(hashedPassword)
 
-	return DB.Omit("uid").Create(newUser).Error
+	return us.DB.Omit("uid").Create(newUser).Error
 }
 
-func GetAllUsers(DB *gorm.DB) ([]User, error) {
+func (us *userService) GetAllUsers() ([]User, error) {
 	var usersList []User
 
-	if err := DB.Select("uid, role_id, persons_uid, email").Find(&usersList).Error; err != nil {
+	if err := us.DB.Select("uid, role_id, persons_uid, email").Find(&usersList).Error; err != nil {
 		return nil, err
 	}
 
 	return usersList, nil
 }
 
-func GetUserByUID(DB *gorm.DB, uid string) (*User, error) {
+func (us *userService) GetUserByUID(uid string) (*User, error) {
 	var user User
 
-	if err := DB.Select("uid, role_id, persons_uid, email").Where("uid = ?", uid).First(&user).Error; err != nil {
+	if err := us.DB.Select("uid, role_id, persons_uid, email").Where("uid = ?", uid).First(&user).Error; err != nil {
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-func GetUserByEmail(DB *gorm.DB, email string) (*User, error) {
+func (us *userService) GetUserByEmail(email string) (*User, error) {
 	var user User
 
-	if err := DB.Where("email = ?", email).First(&user).Error; err != nil {
+	if err := us.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-func AttachPerson(DB *gorm.DB, personUid string, userUid string) error {
-	tx := DB.Begin()
+func (us *userService) AttachPerson(personUid string, userUid string) error {
+	tx := us.DB.Begin()
 
 	if err := tx.Model(&User{}).Where("uid = ?", userUid).Update("persons_uid", personUid).Error; err != nil {
 		tx.Rollback()
@@ -107,6 +124,6 @@ func AttachPerson(DB *gorm.DB, personUid string, userUid string) error {
 	return tx.Commit().Error
 }
 
-func DeleteUserByUID(DB *gorm.DB, uid string) error {
-	return DB.Delete(&User{}, "uid = ?", uid).Error
+func (us *userService) DeleteUserByUID(uid string) error {
+	return us.DB.Delete(&User{}, "uid = ?", uid).Error
 }

@@ -9,7 +9,7 @@ import (
 
 const UUIDRegex = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
 
-func ConfigureUserRoutes(r *mux.Router) {
+func ConfigureUserRoutes(r *mux.Router, controllers *controllers.UserController) {
 	router := r.PathPrefix("/users").Subrouter()
 
 	router.HandleFunc("", controllers.GetAllUsers).Methods("GET")

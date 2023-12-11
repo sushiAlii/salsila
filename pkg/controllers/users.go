@@ -3,22 +3,28 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/sushiAlii/salsila/pkg/db"
 	"github.com/sushiAlii/salsila/pkg/models"
 	"gorm.io/gorm"
 )
 
-func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+type UserController struct {
+	service models.UserService
+}
+
+func NewUserController(service models.UserService) *UserController {
+	return &UserController{service: service}
+}
+
+func (uc *UserController) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	var (
 		users	[]models.User
 		err		error
 	)
 
-	users, err = models.GetAllUsers(db.DB)
+	users, err = uc.service.GetAllUsers()
 	
 	if err != nil {
 		http.Error(w, "Failed to fetch list of users", http.StatusInternalServerError)
@@ -31,14 +37,14 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetUserByUID(w http.ResponseWriter, r *http.Request) {
+func (uc *UserController) GetUserByUID(w http.ResponseWriter, r *http.Request) {
 	uidParam, ok := mux.Vars(r)["uid"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
 		return
 	}
 
-	userData, err := models.GetUserByUID(db.DB, uidParam)
+	userData, err := uc.service.GetUserByUID(uidParam)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "User does not exist", http.StatusNotFound)
@@ -55,9 +61,7 @@ func GetUserByUID(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func AttachPerson(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("HELLO??")
-
+func (uc *UserController) AttachPerson(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		PersonUid	string
 	}
@@ -73,7 +77,7 @@ func AttachPerson(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.AttachPerson(db.DB, body.PersonUid, userUid); err != nil {
+	if err := uc.service.AttachPerson(body.PersonUid, userUid); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -89,14 +93,14 @@ func AttachPerson(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func DeleteUserByUID(w http.ResponseWriter, r *http.Request) {
+func (uc *UserController) DeleteUserByUID(w http.ResponseWriter, r *http.Request) {
 	uidParam, ok := mux.Vars(r)["uid"]
 	if !ok {
 		http.Error(w, "ID not provided", http.StatusBadRequest)
 		return
 	}
 
-	if err := models.DeleteUserByUID(db.DB, uidParam); err != nil {
+	if err := uc.service.DeleteUserByUID(uidParam); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			http.Error(w, "User not found", http.StatusNotFound)
 			return

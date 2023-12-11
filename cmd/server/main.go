@@ -28,15 +28,18 @@ func main() {
 	familyService := models.NewFamilyController(dbInstance)
 	familyController := controllers.NewFamilyController(familyService)
 
-	authService := models.NewAuthService(dbInstance)
-	authController := controllers.NewAuthController(authService)
+	userService := models.NewUserService(dbInstance)
+	userController := controllers.NewUserController(userService)
+
+	authService := models.NewAuthService(dbInstance, userService)
+	authController := controllers.NewAuthController(authService, userService)
 
 
 	r := mux.NewRouter()
 
 	fmt.Printf("Server is running on Port %s", port)
 
-	routes.ConfigureAllRoutes(r, roleController, socialNetworkController, familyController, authController)
+	routes.ConfigureAllRoutes(r, roleController, socialNetworkController, familyController, userController, authController)
 	
 	err := http.ListenAndServe(":" + port, r)
 

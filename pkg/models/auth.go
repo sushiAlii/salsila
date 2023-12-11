@@ -42,14 +42,15 @@ type AuthService interface {
 
 type authService struct {
 	DB *gorm.DB
+	userService UserService
 }
 
-func NewAuthService(db *gorm.DB) AuthService {
-	return &authService{DB: db}
+func NewAuthService(db *gorm.DB, userService UserService) AuthService {
+	return &authService{DB: db, userService: userService}
 }
 
 func (as *authService) LoginUser(email string, password string) (*User, error) {
-	user, err := GetUserByEmail(as.DB, email)
+	user, err := as.userService.GetUserByEmail(email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
@@ -81,7 +82,7 @@ func (as *authService) LogoutUser(refreshToken string) error {
 }
 
 func (as *authService) RegisterUser(user *User) error {
-	return CreateUser(as.DB, user)
+	return as.userService.CreateUser(user)
 }
 
 func (as *authService) CreateToken(userUID string) (*TokenDetails, error) {
