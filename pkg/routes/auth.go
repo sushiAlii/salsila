@@ -5,7 +5,7 @@ import (
 	"github.com/sushiAlii/salsila/pkg/controllers"
 )
 
-func ConfigureAuthRoutes(r *mux.Router) {
+func ConfigureAuthRoutes(r *mux.Router, controllers *controllers.AuthController) {
 	router := r.PathPrefix("/auth").Subrouter()
 
 	//	Register

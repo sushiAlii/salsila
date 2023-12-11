@@ -29,10 +29,27 @@ type RefreshToken struct {
 	Token		string		`gorm:"not null"`
 	ExpiresAt	time.Time	`gorm:"type:timestamptz;not null"`
 	CreatedAt	time.Time	`gorm:"type:timestamptz;not null"`
-}	
+}
 
-func LoginUser(DB *gorm.DB, email, password string) (*User, error) {
-	user, err := GetUserByEmail(DB, email)
+type AuthService interface {
+	LoginUser(string, string) (*User, error)
+	LogoutUser(string) error
+	RegisterUser(*User) error
+	CreateToken(string) (*TokenDetails, error)
+	SaveAuth(string, *TokenDetails) error
+	Refresh(string) (*TokenDetails, error)
+}
+
+type authService struct {
+	DB *gorm.DB
+}
+
+func NewAuthService(db *gorm.DB) AuthService {
+	return &authService{DB: db}
+}
+
+func (as *authService) LoginUser(email string, password string) (*User, error) {
+	user, err := GetUserByEmail(as.DB, email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrUserNotFound
@@ -47,13 +64,13 @@ func LoginUser(DB *gorm.DB, email, password string) (*User, error) {
 	return user, nil
 }
 
-func LogoutUser(DB *gorm.DB, refreshToken string) error {
-	userUid, err := GetUserUIDFromToken(refreshToken)
+func (as *authService) LogoutUser(refreshToken string) error {
+	userUid, err := getUserUIDFromToken(refreshToken)
 	if err != nil {
 		return err
 	}
 
-	tx := DB.Begin()
+	tx := as.DB.Begin()
 
 	if err := tx.Where("user_uid = ? AND token = ?", userUid, refreshToken).Delete(&RefreshToken{}).Error; err != nil {
 		tx.Rollback()
@@ -63,11 +80,11 @@ func LogoutUser(DB *gorm.DB, refreshToken string) error {
 	return tx.Commit().Error
 }
 
-func RegisterUser(DB *gorm.DB, user *User) error {
-	return CreateUser(DB, user)
+func (as *authService) RegisterUser(user *User) error {
+	return CreateUser(as.DB, user)
 }
 
-func CreateToken(userUID string) (*TokenDetails, error) {
+func (as *authService) CreateToken(userUID string) (*TokenDetails, error) {
 	token := &TokenDetails{}
 
 	token.ATExpires = time.Now().Add(time.Minute * 15).Unix()
@@ -99,18 +116,18 @@ func CreateToken(userUID string) (*TokenDetails, error) {
 	return token, nil
 }
 
-func SaveAuth(DB *gorm.DB, userUid string, td *TokenDetails) error {
+func (as *authService) SaveAuth(userUid string, td *TokenDetails) error {
 	token := &RefreshToken{
 		Token:		td.RefreshToken,
 		UserUID: 	userUid,
 		ExpiresAt: 	time.Unix(td.RTExpires, 0),
 	}
 
-	return DB.Create(token).Error;
+	return as.DB.Create(token).Error;
 }
 
-func Refresh(DB *gorm.DB, refreshToken string) (*TokenDetails, error) {
-	tx := DB.Begin()
+func (as *authService) Refresh(refreshToken string) (*TokenDetails, error) {
+	tx := as.DB.Begin()
 
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 		if _,ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -137,27 +154,27 @@ func Refresh(DB *gorm.DB, refreshToken string) (*TokenDetails, error) {
 		return nil, fmt.Errorf("Invalid claim: %s", userUid)
 	}
 
-	if _, err := VerifyToken(DB, userUid, refreshToken); err != nil {
+	if _, err := verifyToken(as.DB, userUid, refreshToken); err != nil {
 		return nil, err
 	}
 
-	newToken, err := CreateToken(userUid)
+	newToken, err := as.CreateToken(userUid)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := SaveAuth(DB, userUid, newToken); err != nil {
+	if err := as.SaveAuth(userUid, newToken); err != nil {
 		return nil, err
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
-	}
+	} 
 
 	return newToken, nil
 }
 
-func VerifyToken(DB *gorm.DB, userUid string, tokenString string) (*RefreshToken, error) {
+func verifyToken(DB *gorm.DB, userUid string, tokenString string) (*RefreshToken, error) {
 	var token RefreshToken
 
 	if err := DB.Where("user_uid = ? AND token = ?", userUid, tokenString).First(&token).Error; err != nil {
@@ -178,7 +195,7 @@ func VerifyToken(DB *gorm.DB, userUid string, tokenString string) (*RefreshToken
 	return &token, nil
 }
 
-func GetUserUIDFromToken(refreshToken string) (string, error) {
+func getUserUIDFromToken(refreshToken string) (string, error) {
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])

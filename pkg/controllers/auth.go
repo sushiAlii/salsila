@@ -8,7 +8,15 @@ import (
 	"github.com/sushiAlii/salsila/pkg/models"
 )
 
-func LoginUser(w http.ResponseWriter, r *http.Request) {
+type AuthController struct {
+	service models.AuthService
+}
+
+func NewAuthController(service models.AuthService) *AuthController {
+	return &AuthController{service: service}
+}
+
+func (ac *AuthController) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var credentials struct {
 		Email		string	`json:"email"`
 		Password	string	`json:"password"`
@@ -19,19 +27,19 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := models.LoginUser(db.DB, credentials.Email, credentials.Password)
+	user, err := ac.service.LoginUser(credentials.Email, credentials.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	token, err := models.CreateToken(user.UID)
+	token, err := ac.service.CreateToken(user.UID)
 	if err != nil {
 		http.Error(w, "Failed to create a token", http.StatusInternalServerError)
 		return
 	}
 
-	if err := models.SaveAuth(db.DB, user.UID, token); err != nil {
+	if err := ac.service.SaveAuth(user.UID, token); err != nil {
 		http.Error(w, "Failed to save authentication token", http.StatusInternalServerError)
 		return
 	}
@@ -44,14 +52,14 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func LogoutUser(w http.ResponseWriter, r *http.Request) {
+func (ac *AuthController) LogoutUser(w http.ResponseWriter, r *http.Request) {
 	refreshToken := r.Header.Get("Refresh-Token")
 	if(refreshToken == "") {
 		http.Error(w, "Refresh token is required", http.StatusBadRequest)
 		return
 	}
 
-	if err := models.LogoutUser(db.DB, refreshToken); err != nil {
+	if err := ac.service.LogoutUser(refreshToken); err != nil {
 		http.Error(w, "Could not logout", http.StatusInternalServerError)
 		return
 	}
@@ -64,7 +72,7 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func RegisterUser(w http.ResponseWriter, r *http.Request) {
+func (ac *AuthController) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var newUser models.User
 
 	if err := json.NewDecoder(r.Body).Decode(&newUser); err != nil {
@@ -78,7 +86,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	if err := models.RegisterUser(db.DB, &newUser); err != nil {
+	if err := ac.service.RegisterUser(&newUser); err != nil {
 		http.Error(w, "Failed to register a user", http.StatusInternalServerError)
 		return
 	}
@@ -89,7 +97,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func RefreshToken(w http.ResponseWriter, r *http.Request) {
+func (ac *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	refreshToken := r.Header.Get("Refresh-Token")
 
 	if refreshToken == "" {
@@ -97,7 +105,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newToken, err := models.Refresh(db.DB, refreshToken)
+	newToken, err := ac.service.Refresh(refreshToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusForbidden)
 		return
