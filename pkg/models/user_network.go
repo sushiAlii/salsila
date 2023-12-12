@@ -17,7 +17,20 @@ type UserNetwork struct {
 }
 
 type UserNetworkService interface {
+	CreateUserNetwork(*UserNetwork) error
+	GetAllUserNetworks() ([]UserNetwork, error)
+	GetUserNetworksByUserUID(string) ([]UserNetwork, error)
+	GetUserNetworkByID(uint) (*UserNetwork, error)
+	UpdateUserNetworkByID(*UserNetwork, uint) error
+	DeleteUserNetworkByID(uint) error
+}
 
+type userNetworkService struct {
+	DB *gorm.DB
+}
+
+func NewUserNetworkService(db *gorm.DB) UserNetworkService {
+	return &userNetworkService{DB: db}
 }
 
 func ValidateCreateUserNetwork(userNetwork *UserNetwork) error {
@@ -52,43 +65,42 @@ func ValidateUpdateUserNetwork(userNetwork *UserNetwork) error {
 	return nil
 }
 
-
-func CreateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
-	return DB.Create(userNetwork).Error
+func (uns *userNetworkService) CreateUserNetwork(userNetwork *UserNetwork) error {
+	return uns.DB.Create(userNetwork).Error
 }
 
-func GetAllUserNetworks(DB *gorm.DB) ([]UserNetwork, error) {
+func (uns *userNetworkService) GetAllUserNetworks() ([]UserNetwork, error) {
 	var userNetworks []UserNetwork
 
-	if err := DB.Find(&userNetworks).Error; err != nil {
+	if err := uns.DB.Find(&userNetworks).Error; err != nil {
 		return nil, err
 	}
 
 	return userNetworks, nil
 }
 
-func GetUserNetworksByUserUID(DB *gorm.DB, userUid string) ([]UserNetwork, error) {
+func (uns *userNetworkService) GetUserNetworksByUserUID(userUid string) ([]UserNetwork, error) {
 	var userNetworks []UserNetwork
 
-	if err := DB.Find(&userNetworks, "user_uid = ?", userUid).Error; err != nil {
+	if err := uns.DB.Find(&userNetworks, "user_uid = ?", userUid).Error; err != nil {
 		return nil, err
 	}
 
 	return userNetworks, nil
 }
 
-func GetUserNetworkByID(DB *gorm.DB, id uint) (*UserNetwork, error) {
+func (uns *userNetworkService) GetUserNetworkByID(id uint) (*UserNetwork, error) {
 	var userNetwork UserNetwork
 
-	if err := DB.First(&userNetwork, id).Error; err != nil {
+	if err := uns.DB.First(&userNetwork, id).Error; err != nil {
 		return nil, err
 	}
 
 	return &userNetwork, nil
 }
 
-func UpdateUserNetworkByID(DB *gorm.DB, userNetwork *UserNetwork, id uint) error {
-	tx := DB.Begin()
+func (uns *userNetworkService) UpdateUserNetworkByID(userNetwork *UserNetwork, id uint) error {
+	tx := uns.DB.Begin()
 
 	if err := tx.Model(&UserNetwork{}).Where("id = ?", id).Updates(&userNetwork).Error; err != nil {
 		tx.Rollback()
@@ -99,8 +111,8 @@ func UpdateUserNetworkByID(DB *gorm.DB, userNetwork *UserNetwork, id uint) error
 	return tx.Commit().Error
 }
 
-func DeleteUserNetworkByID(DB *gorm.DB, id uint) error {
-	tx := DB.Begin()
+func (uns *userNetworkService) DeleteUserNetworkByID(id uint) error {
+	tx := uns.DB.Begin()
 
 	if err := tx.Delete(&UserNetwork{}, id).Error; err != nil {
 		tx.Rollback()

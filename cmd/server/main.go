@@ -37,12 +37,15 @@ func main() {
 	personService := models.NewPersonService(dbInstance)
 	personController := controllers.NewPersonController(personService)
 
+	userNetworkService := models.NewUserNetworkService(dbInstance)
+	userNetworkController := controllers.NewUserNetworkController(userNetworkService)
+
 
 	r := mux.NewRouter()
 
 	fmt.Printf("Server is running on Port %s", port)
 
-	routes.ConfigureAllRoutes(r, roleController, socialNetworkController, familyController, userController, authController, personController)
+	routes.ConfigureAllRoutes(r, roleController, socialNetworkController, familyController, userController, authController, personController, userNetworkController)
 	
 	err := http.ListenAndServe(":" + port, r)
 

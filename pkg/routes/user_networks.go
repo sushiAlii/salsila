@@ -5,7 +5,7 @@ import (
 	"github.com/sushiAlii/salsila/pkg/controllers"
 )
 
-func ConfigureUserNetworkRoutes(r *mux.Router){
+func ConfigureUserNetworkRoutes(r *mux.Router, controllers *controllers.UserNetworkController){
 	router := r.PathPrefix("/user_networks").Subrouter()
 
 	//	CREATE
