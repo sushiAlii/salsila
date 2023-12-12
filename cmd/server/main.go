@@ -19,33 +19,11 @@ func main() {
 	dbInstance := db.InitializeDB()
 	port := os.Getenv("APP_PORT")
 
-	roleService := models.NewRoleService(dbInstance)
-	roleController := controllers.NewRoleController(roleService)
-
-	socialNetworkService := models.NewSocialNetworkService(dbInstance)
-	socialNetworkController := controllers.NewSocialNetworkController(socialNetworkService)
-
-	familyService := models.NewFamilyController(dbInstance)
-	familyController := controllers.NewFamilyController(familyService)
-
-	userService := models.NewUserService(dbInstance)
-	userController := controllers.NewUserController(userService)
-
-	authService := models.NewAuthService(dbInstance, userService)
-	authController := controllers.NewAuthController(authService, userService)
-
-	personService := models.NewPersonService(dbInstance)
-	personController := controllers.NewPersonController(personService)
-
-	userNetworkService := models.NewUserNetworkService(dbInstance)
-	userNetworkController := controllers.NewUserNetworkController(userNetworkService)
-
-
 	r := mux.NewRouter()
-
-	fmt.Printf("Server is running on Port %s", port)
-
-	routes.ConfigureAllRoutes(r, roleController, socialNetworkController, familyController, userController, authController, personController, userNetworkController)
+	s := models.InstantiateServices(dbInstance)
+	c := controllers.InstantiateControllers(s)
+	
+	routes.ConfigureAllRoutes(r, c)
 	
 	err := http.ListenAndServe(":" + port, r)
 
