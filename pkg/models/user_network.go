@@ -6,7 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 type UserNetwork struct {
 	ID					uint		`gorm:"primaryKey" json:"id"`
 	UserUID				string		`gorm:"not null" json:"userUid"`
@@ -17,7 +16,11 @@ type UserNetwork struct {
 	UpdatedAt			*time.Time	`gorm:"type:timestamptz" json:"-"`
 }
 
-func ValidateCreateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
+type UserNetworkService interface {
+
+}
+
+func ValidateCreateUserNetwork(userNetwork *UserNetwork) error {
 	if userNetwork.UserUID == "" {
 		return ErrUserUIDRequired
 	}
@@ -37,7 +40,7 @@ func ValidateCreateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
 	return nil
 }
 
-func ValidateUpdateUserNetwork(DB *gorm.DB, userNetwork *UserNetwork) error {
+func ValidateUpdateUserNetwork(userNetwork *UserNetwork) error {
 	if userNetwork.UserURL == "" {
 		return ErrUserURLRequired
 	}

@@ -20,7 +20,7 @@ func CreateUserNetwork(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.ValidateCreateUserNetwork(db.DB, &newUserNetwork); err != nil {
+	if err := models.ValidateCreateUserNetwork(&newUserNetwork); err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
@@ -81,7 +81,7 @@ func UpdateUserNetworkByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.ValidateUpdateUserNetwork(db.DB, &userNetwork); err != nil {
+	if err := models.ValidateUpdateUserNetwork(&userNetwork); err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
