@@ -15,4 +15,7 @@ migrate-up:
 migrate-down:
 	migrate -path pkg/db/migrations -database "$(DB_CONNECTION)" -verbose down
 
-.PHONY: createdb dropdb migrate-up migrate-down dev
+test:
+	go test ./...
+
+.PHONY: createdb dropdb migrate-up migrate-down dev test
